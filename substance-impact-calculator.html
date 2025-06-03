@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Substance Impact Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            background: linear-gradient(45deg, #ff6b6b, #ffd93d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { filter: drop-shadow(0 0 10px rgba(255, 107, 107, 0.5)); }
+            to { filter: drop-shadow(0 0 20px rgba(255, 107, 107, 0.8)); }
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .calculator-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: slideInUp 0.8s ease-out;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #ffd93d;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.02);
+        }
+
+        .substance-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .tab-btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(45deg, #ff6b6b, #ffd93d);
+            transform: scale(1.05);
+        }
+
+        .tab-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        .substance-content {
+            display: none;
+        }
+
+        .substance-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .calculate-btn {
+            width: 100%;
+            padding: 20px;
+            border: none;
+            border-radius: 15px;
+            background: linear-gradient(45deg, #ff6b6b, #ff8e53);
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(255, 107, 107, 0.4);
+        }
+
+        .results {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 30px;
+            border: 2px solid #ff6b6b;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { border-color: #ff6b6b; }
+            50% { border-color: #ffd93d; }
+            100% { border-color: #ff6b6b; }
+        }
+
+        .warning-icon {
+            font-size: 4rem;
+            text-align: center;
+            margin-bottom: 20px;
+            animation: shake 1s infinite;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .impact-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ff6b6b;
+            display: block;
+        }
+
+        .help-section {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .help-section h3 {
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+
+        .help-resources {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .resource-card {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 15px;
+            transition: transform 0.3s ease;
+        }
+
+        .resource-card:hover {
+            transform: translateY(-5px);
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .floating-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            animation: float 6s infinite linear;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-10vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .calculator-section {
+                padding: 20px;
+            }
+            
+            .substance-tabs {
+                flex-direction: column;
+            }
+            
+            .tab-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-particles" id="particles"></div>
+    
+    <div class="container">
+        <header class="header">
+            <h1>⚠️ Substance Impact Calculator</h1>
+            <p>Understanding the real cost of substance use on your health and life. Knowledge is the first step toward making better choices.</p>
+        </header>
+
+        <div class="calculator-section">
+            <div class="form-group">
+                <label for="age">Age</label>
+                <input type="number" id="age" placeholder="Enter your age" min="13" max="100">
+            </div>
+
+            <div class="form-group">
+                <label for="gender">Gender</label>
+                <select id="gender">
+                    <option value="">Select Gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="weight">Weight (kg)</label>
+                <input type="number" id="weight" placeholder="Enter your weight in kg" min="30" max="300">
+            </div>
+
+            <div class="form-group">
+                <label for="health">Overall Health Condition</label>
+                <select id="health">
+                    <option value="">Select Health Status</option>
+                    <option value="excellent">Excellent</option>
+                    <option value="good">Good</option>
+                    <option value="fair">Fair</option>
+                    <option value="poor">Poor</option>
+                </select>
+            </div>
+
+            <div class="substance-tabs">
+                <button class="tab-btn active" onclick="showSubstance('cigarettes')">🚬 Cigarettes</button>
+                <button class="tab-btn" onclick="showSubstance('alcohol')">🍺 Alcohol</button>
+                <button class="tab-btn" onclick="showSubstance('drugs')">💊 Other Substances</button>
+            </div>
+
+            <div id="cigarettes" class="substance-content active">
+                <div class="form-group">
+                    <label for="cig-daily">Cigarettes per day</label>
+                    <input type="number" id="cig-daily" placeholder="How many cigarettes do you smoke daily?" min="0" max="100">
+                </div>
+                <div class="form-group">
+                    <label for="cig-years">Years of smoking</label>
+                    <input type="number" id="cig-years" placeholder="How many years have you been smoking?" min="0" max="80">
+                </div>
+            </div>
+
+            <div id="alcohol" class="substance-content">
+                <div class="form-group">
+                    <label for="alcohol-type">Type of alcohol consumed most</label>
+                    <select id="alcohol-type">
+                        <option value="">Select Type</option>
+                        <option value="beer">Beer</option>
+                        <option value="wine">Wine</option>
+                        <option value="spirits">Spirits/Hard Liquor</option>
+                        <option value="mixed">Mixed</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="alcohol-weekly">Drinks per week</label>
+                    <input type="number" id="alcohol-weekly" placeholder="How many drinks per week?" min="0" max="100">
+                </div>
+                <div class="form-group">
+                    <label for="alcohol-years">Years of drinking</label>
+                    <input type="number" id="alcohol-years" placeholder="How many years have you been drinking?" min="0" max="80">
+                </div>
+            </div>
+
+            <div id="drugs" class="substance-content">
+                <div class="form-group">
+                    <label for="drug-type">Primary substance</label>
+                    <select id="drug-type">
+                        <option value="">Select Substance</option>
+                        <option value="cannabis">Cannabis/Marijuana</option>
+                        <option value="cocaine">Cocaine</option>
+                        <option value="opioids">Opioids/Painkillers</option>
+                        <option value="amphetamines">Amphetamines</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="drug-frequency">Usage frequency</label>
+                    <select id="drug-frequency">
+                        <option value="">Select Frequency</option>
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="occasionally">Occasionally</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="drug-years">Years of use</label>
+                    <input type="number" id="drug-years" placeholder="How many years have you been using?" min="0" max="50">
+                </div>
+            </div>
+
+            <button class="calculate-btn" onclick="calculateImpact()">Calculate Health Impact</button>
+        </div>
+
+        <div id="results" style="display: none;"></div>
+
+        <div class="help-section">
+            <h3>🌟 You Can Change Your Story</h3>
+            <p>Every day is a new opportunity to make healthier choices. Here are resources to help:</p>
+            
+            <div class="help-resources">
+                <div class="resource-card">
+                    <h4>📞 Crisis Hotlines</h4>
+                    <p>24/7 support when you need it most</p>
+                </div>
+                <div class="resource-card">
+                    <h4>🏥 Treatment Centers</h4>
+                    <p>Professional help and rehabilitation programs</p>
+                </div>
+                <div class="resource-card">
+                    <h4>👥 Support Groups</h4>
+                    <p>Connect with others on the same journey</p>
+                </div>
+                <div class="resource-card">
+                    <h4>💪 Healthy Alternatives</h4>
+                    <p>Exercise, hobbies, and positive activities</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Create floating particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 6 + 's';
+                particle.style.animationDuration = (Math.random() * 3 + 3) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        function showSubstance(substance) {
+            // Hide all content
+            document.querySelectorAll('.substance-content').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // Remove active from all tabs
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // Show selected content and activate tab
+            document.getElementById(substance).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function calculateImpact() {
+            const age = parseInt(document.getElementById('age').value);
+            const gender = document.getElementById('gender').value;
+            const weight = parseInt(document.getElementById('weight').value);
+            const health = document.getElementById('health').value;
+
+            if (!age || !gender || !weight || !health) {
+                alert('Please fill in all basic information fields.');
+                return;
+            }
+
+            const activeTab = document.querySelector('.substance-content.active').id;
+            let results = '';
+
+            switch (activeTab) {
+                case 'cigarettes':
+                    results = calculateCigaretteImpact(age, gender, weight, health);
+                    break;
+                case 'alcohol':
+                    results = calculateAlcoholImpact(age, gender, weight, health);
+                    break;
+                case 'drugs':
+                    results = calculateDrugImpact(age, gender, weight, health);
+                    break;
+            }
+
+            displayResults(results);
+        }
+
+        function calculateCigaretteImpact(age, gender, weight, health) {
+            const daily = parseInt(document.getElementById('cig-daily').value) || 0;
+            const years = parseInt(document.getElementById('cig-years').value) || 0;
+
+            if (daily === 0) {
+                return {
+                    title: '🌱 Great News!',
+                    message: 'You\'re not currently smoking - that\'s fantastic for your health!',
+                    stats: [],
+                    severity: 'good'
+                };
+            }
+
+            const totalCigs = daily * 365 * years;
+            const lifeReduction = daily * 11; // 11 minutes per cigarette
+            const cancerRisk = Math.min(95, (daily * years * 0.8));
+            const heartDiseaseRisk = Math.min(90, (daily * years * 0.6));
+
+            return {
+                title: '🚬 Cigarette Impact Analysis',
+                message: `Based on your smoking pattern of ${daily} cigarettes daily for ${years} years, here's the stark reality:`,
+                stats: [
+                    { label: 'Total Cigarettes Consumed', value: totalCigs.toLocaleString() },
+                    { label: 'Life Reduction (minutes)', value: lifeReduction.toLocaleString() },
+                    { label: 'Increased Cancer Risk', value: cancerRisk.toFixed(1) + '%' },
+                    { label: 'Heart Disease Risk', value: heartDiseaseRisk.toFixed(1) + '%' },
+                    { label: 'Years of Life Lost', value: Math.round(lifeReduction / 525600) }
+                ],
+                severity: 'critical'
+            };
+        }
+
+        function calculateAlcoholImpact(age, gender, weight, health) {
+            const weekly = parseInt(document.getElementById('alcohol-weekly').value) || 0;
+            const years = parseInt(document.getElementById('alcohol-years').value) || 0;
+            const type = document.getElementById('alcohol-type').value;
+
+            if (weekly === 0) {
+                return {
+                    title: '✨ Excellent Choice!',
+                    message: 'You\'re not currently drinking alcohol - your liver thanks you!',
+                    stats: [],
+                    severity: 'good'
+                };
+            }
+
+            const totalDrinks = weekly * 52 * years;
+            const liverDamage = Math.min(95, (weekly * years * 0.5));
+            const alcoholismRisk = Math.min(90, (weekly * years * 0.3));
+            
+            // Gender-based calculations
+            const multiplier = gender === 'female' ? 1.3 : 1.0;
+
+            return {
+                title: '🍺 Alcohol Impact Analysis',
+                message: `With ${weekly} drinks per week over ${years} years, alcohol is taking its toll:`,
+                stats: [
+                    { label: 'Total Drinks Consumed', value: totalDrinks.toLocaleString() },
+                    { label: 'Liver Damage Risk', value: (liverDamage * multiplier).toFixed(1) + '%' },
+                    { label: 'Addiction Risk', value: alcoholismRisk.toFixed(1) + '%' },
+                    { label: 'Brain Cell Damage', value: 'Significant' },
+                    { label: 'Years of Potential Life Lost', value: Math.round(weekly * years / 100) }
+                ],
+                severity: weekly > 14 ? 'critical' : 'warning'
+            };
+        }
+
+        function calculateDrugImpact(age, gender, weight, health) {
+            const type = document.getElementById('drug-type').value;
+            const frequency = document.getElementById('drug-frequency').value;
+            const years = parseInt(document.getElementById('drug-years').value) || 0;
+
+            if (!type || !frequency) {
+                return {
+                    title: '📝 Incomplete Information',
+                    message: 'Please select the substance type and usage frequency.',
+                    stats: [],
+                    severity: 'warning'
+                };
+            }
+
+            const riskFactors = {
+                'cannabis': { addiction: 0.1, health: 0.2 },
+                'cocaine': { addiction: 0.8, health: 0.9 },
+                'opioids': { addiction: 0.9, health: 0.95 },
+                'amphetamines': { addiction: 0.7, health: 0.8 },
+                'other': { addiction: 0.6, health: 0.7 }
+            };
+
+            const frequencyMultiplier = {
+                'daily': 4,
+                'weekly': 2,
+                'monthly': 1,
+                'occasionally': 0.5
+            };
+
+            const risk = riskFactors[type];
+            const multiplier = frequencyMultiplier[frequency];
+            
+            const addictionRisk = Math.min(95, risk.addiction * multiplier * years * 10);
+            const healthRisk = Math.min(95, risk.health * multiplier * years * 8);
+
+            return {
+                title: '💊 Substance Impact Analysis',
+                message: `Your ${frequency} use of ${type} over ${years} years shows concerning patterns:`,
+                stats: [
+                    { label: 'Addiction Risk', value: addictionRisk.toFixed(1) + '%' },
+                    { label: 'Severe Health Risk', value: healthRisk.toFixed(1) + '%' },
+                    { label: 'Overdose Risk', value: type === 'opioids' ? 'EXTREMELY HIGH' : 'HIGH' },
+                    { label: 'Mental Health Impact', value: 'Severe' },
+                    { label: 'Life Expectancy Reduction', value: Math.round(years * multiplier) + ' years' }
+                ],
+                severity: 'critical'
+            };
+        }
+
+        function displayResults(data) {
+            if (!data) return;
+
+            const resultsDiv = document.getElementById('results');
+            const severityColors = {
+                'good': '#2ecc71',
+                'warning': '#f39c12',
+                'critical': '#e74c3c'
+            };
+
+            const iconMap = {
+                'good': '🌟',
+                'warning': '⚠️',
+                'critical': '💀'
+            };
+
+            let statsHTML = '';
+            if (data.stats.length > 0) {
+                statsHTML = `
+                    <div class="impact-stats">
+                        ${data.stats.map(stat => `
+                            <div class="stat-card">
+                                <span class="stat-number">${stat.value}</span>
+                                <span>${stat.label}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            resultsDiv.innerHTML = `
+                <div class="warning-icon">${iconMap[data.severity]}</div>
+                <h2 style="color: ${severityColors[data.severity]}; text-align: center; margin-bottom: 20px;">
+                    ${data.title}
+                </h2>
+                <p style="font-size: 1.2rem; text-align: center; margin-bottom: 30px;">
+                    ${data.message}
+                </p>
+                ${statsHTML}
+                ${data.severity !== 'good' ? `
+                    <div style="background: rgba(231, 76, 60, 0.2); padding: 20px; border-radius: 15px; margin-top: 20px; border: 2px solid #e74c3c;">
+                        <h3 style="color: #e74c3c; margin-bottom: 15px;">⚠️ Wake-Up Call</h3>
+                        <p>These numbers represent real damage to your body and life. But here's the good news: <strong>it's never too late to change your story</strong>. Every day you choose health over substances is a victory. Your body has an amazing ability to heal when you give it the chance.</p>
+                    </div>
+                ` : ''}
+            `;
+
+            resultsDiv.style.display = 'block';
+            resultsDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Initialize particles when page loads
+        window.addEventListener('load', createParticles);
+    </script>
+</body>
+</html>
